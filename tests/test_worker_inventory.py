@@ -65,6 +65,16 @@ def test_get_source_items_batch_walks_pages_until_a_short_one(magento_client, fa
     ] == [(1, 2), (2, 2)]
 
 
+def test_get_source_items_batch_stops_at_total_count_when_the_last_page_is_full(magento_client, fake_magento):
+    full_page = {"items": [{"sku": "ENT-100", "quantity": 1}, {"sku": "ENT-200", "quantity": 2}], "total_count": 2}
+    transport = fake_magento(full_page, full_page)
+
+    quantities = get_source_items_batch(magento_client, "kestrel_supply", page_size=2)
+
+    assert quantities == {"ENT-100": 1.0, "ENT-200": 2.0}
+    assert len(transport.calls) == 1
+
+
 def test_get_source_items_batch_skips_rows_without_a_sku(magento_client, fake_magento):
     fake_magento({"items": [{"sku": "ENT-100", "quantity": 1}, {"quantity": 9}]})
 

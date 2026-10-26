@@ -319,7 +319,10 @@ def get_source_items_batch(client: Magento2Client, source_code: str, page_size: 
             if sku is not None:
                 quantities[sku] = float(item.get("quantity") or 0)
 
-        if not items or len(items) < page_size:
+        # Magento clamps a page past the end to the last page, so a catalogue that fills its last page
+        # exactly would be served that page forever: total_count ends the sweep.
+        total_count = response_body.get("total_count")
+        if not items or len(items) < page_size or (total_count is not None and current_page * page_size >= total_count):
             break
         current_page += 1
 
