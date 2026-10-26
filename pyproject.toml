@@ -1,7 +1,19 @@
 [project]
 name = "entirius-py-magento2-sdk2"
-version = "2.0.0"
-description = "Magento 2 REST API SDK — products, customers, attributes, search and stores"
+version = "2.1.0rc1"
+description = "Magento 2 REST API client for products, customers, attributes, stores and search, part of Entirius"
+keywords = ["magento", "magento2", "rest-api", "sdk", "catalog", "ecommerce", "entirius"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 authors = [{ name = "Entirius" }]
 readme = "README.md"
 requires-python = ">=3.11"
@@ -17,7 +29,11 @@ dev  = ["ruff", "pre-commit"]
 test = ["pytest", "faker>=8.12.1"]
 
 [project.urls]
+Homepage = "https://docs.entirius.com/"
+Documentation = "https://docs.entirius.com/"
 Repository = "https://github.com/entirius/entirius-py-magento2-sdk2"
+Changelog = "https://github.com/entirius/entirius-py-magento2-sdk2/blob/develop/CHANGELOG.md"
+Issues = "https://github.com/entirius/entirius-py-magento2-sdk2/issues"
 
 [build-system]
 requires = ["hatchling"]
