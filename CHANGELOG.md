@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0rc1] - 2026-10-26
+
+### Changed
+
+- Package metadata: keywords, classifiers and project URLs (docs, changelog, issues) for the PyPI page.
+
 ## [2.0.0] - 2026-07-06
 
 Initial public release.
