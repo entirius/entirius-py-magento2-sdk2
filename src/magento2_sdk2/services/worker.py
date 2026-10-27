@@ -248,8 +248,89 @@ def get_stock_items_batch(client: Magento2Client, skus: list[str]) -> dict[str, 
     return stock_items
 
 
+def get_product_salable_quantity(client: Magento2Client, sku: str, stock_id: int) -> float:
+    """Salable quantity of a SKU in one MSI stock.
+
+    V1/stockItems returns the legacy pre-MSI number: always stock_id 1, taken from the
+    default source. On a catalogue with several sources that is the warehouse total, not
+    what a given storefront may sell. This endpoint answers per stock and already accounts
+    for reservations on unshipped orders.
+
+    Args:
+        client: Magento2Client instance
+        sku: product SKU (slashes are URL-encoded, Magento rejects raw ones)
+        stock_id: MSI stock id (see V1/inventory/stocks)
+    """
+    request = Request(
+        method="GET",
+        resource=f"V1/inventory/get-product-salable-quantity/{quote(sku, safe='')}/{stock_id}",
+        auth=client,
+    )
+    response = request.make_request()
+    validation, response_body = validate_magento2_response(response, request)
+
+    if validation:
+        return response_body
+    else:
+        raise MagentoError(f"The magento API responded with an error. Message: {response_body.get('message')}")
+
+
+def get_source_items_batch(client: Magento2Client, source_code: str, page_size: int = 200) -> dict[str, float]:
+    """Quantities of every SKU assigned to one MSI source, in a single paginated sweep.
+
+    The salable-quantity endpoint answers per SKU, so a full catalogue would cost one
+    request per product. Source items are searchable, so the same data comes in a handful
+    of requests. Source quantity is not salable quantity: it is the raw figure for a single
+    source, before stock aggregation, reservations and the out-of-stock threshold.
+
+    Args:
+        client: Magento2Client instance
+        source_code: MSI source code (see V1/inventory/sources)
+        page_size: rows per request
+
+    Returns:
+        Dict mapping SKU to quantity: {sku: quantity}
+    """
+    quantities: dict[str, float] = {}
+    current_page = 1
+
+    while True:
+        request = Request(
+            method="GET",
+            resource="V1/inventory/source-items",
+            auth=client,
+            params={
+                "searchCriteria[filterGroups][0][filters][0][field]": "source_code",
+                "searchCriteria[filterGroups][0][filters][0][condition_type]": "eq",
+                "searchCriteria[filterGroups][0][filters][0][value]": source_code,
+                "searchCriteria[currentPage]": current_page,
+                "searchCriteria[pageSize]": page_size,
+            },
+        )
+        response = request.make_request()
+        validation, response_body = validate_magento2_response(response, request)
+
+        if not validation:
+            raise MagentoError(f"The magento API responded with an error. Message: {response_body.get('message')}")
+
+        items = response_body.get("items") or []
+        for item in items:
+            sku = item.get("sku")
+            if sku is not None:
+                quantities[sku] = float(item.get("quantity") or 0)
+
+        # Magento clamps a page past the end to the last page, so a catalogue that fills its last page
+        # exactly would be served that page forever: total_count ends the sweep.
+        total_count = response_body.get("total_count")
+        if not items or len(items) < page_size or (total_count is not None and current_page * page_size >= total_count):
+            break
+        current_page += 1
+
+    return quantities
+
+
 def get_product(client: Magento2Client, store_view: str, sku: str):
-    request = Request(method="GET", resource=f"{store_view}/V1/products/{sku}", auth=client)
+    request = Request(method="GET", resource=f"{store_view}/V1/products/{quote(sku, safe='')}", auth=client)
     response = request.make_request()
     validation, response_body = validate_magento2_response(response, request)
 
@@ -270,7 +351,7 @@ def get_product_variants(client: Magento2Client, store_view: str, sku: str) -> l
     The list is empty when the product has no variant groups. Raises on transport/API errors;
     callers that sweep many SKUs should catch per-SKU exceptions and continue (see get_stock_items_batch).
     """
-    request = Request(method="GET", resource=f"{store_view}/V1/productVariants/{sku}", auth=client)
+    request = Request(method="GET", resource=f"{store_view}/V1/productVariants/{quote(sku, safe='')}", auth=client)
     response = request.make_request()
     validation, response_body = validate_magento2_response(response, request)
 

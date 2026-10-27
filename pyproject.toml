@@ -1,6 +1,6 @@
 [project]
 name = "entirius-py-magento2-sdk2"
-version = "2.0.0"
+version = "2.1.0"
 description = "Magento 2 REST API client for products, customers, attributes, stores and search, part of Entirius"
 keywords = ["magento", "magento2", "rest-api", "sdk", "catalog", "ecommerce", "entirius"]
 classifiers = [
