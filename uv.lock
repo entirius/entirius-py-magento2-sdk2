@@ -129,7 +129,7 @@ wheels = [
 
 [[package]]
 name = "entirius-py-magento2-sdk2"
-version = "2.1.0rc1"
+version = "2.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "marshmallow" },
